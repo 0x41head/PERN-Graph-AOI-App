@@ -23,11 +23,11 @@ const connectToDB = async () => {
     }
   };
 
-const populateTable = async () => {
+const populateTable =  () => {
     if (!dataInserted)
     {
         try{
-            const allData = await pool.query("SELECT * FROM geo_data");
+            const allData = pool.query("SELECT * FROM geo_data");
             if(allData.rowCount>0){
                 dataInserted = true;
                 console.log ("Data Already inserted");
@@ -38,7 +38,7 @@ const populateTable = async () => {
                 for (var i=0;i<jsonData.features.length;i++){
                     var PolygonDescription = jsonData.features[i];
                     //console.log(PolygonDescription)
-                    const newData = await pool.query("INSERT INTO geo_data(geoddatajson) VALUES($1) ",[PolygonDescription]);
+                    const newData = pool.query("INSERT INTO geo_data(geoddatajson) VALUES($1) ",[PolygonDescription]);
                 }
                 console.log ("Data Insertion Successful");
                 return ;
