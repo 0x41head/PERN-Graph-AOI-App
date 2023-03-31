@@ -14,6 +14,5 @@ RUN npm install
 # add app
 COPY . ./
 
-
 # Start the server (production mode)
 CMD ["node", "index"]

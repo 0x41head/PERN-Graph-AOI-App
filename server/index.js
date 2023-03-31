@@ -2,7 +2,7 @@ const express = require("express");
 const app = express();
 const pool = require("./db")
 const cors = require("cors");
-const jsonData = require('./staticGeoDataTiles.json')
+const jsonData = require('./JSONData/staticGeoDataTiles.json')
 var dataInserted = false
 
 const connectToDB = async () => {
