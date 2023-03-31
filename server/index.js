@@ -6,7 +6,7 @@ const jsonData = require('./staticGeoDataTiles.json')
 var dataInserted = false
 
 const connectToDB = async () => {
-    var retry = 5;
+    var retry = 10;
     while(retry){
         try {
             await pool.connect();
@@ -31,7 +31,7 @@ const populateTable = async () => {
             if(allData.rowCount>0){
                 dataInserted = true;
                 console.log ("Data Already inserted");
-                return "Data Already inserted";
+                return ;
             }
             else{
                 //console.log(jsonData);
@@ -41,7 +41,7 @@ const populateTable = async () => {
                     const newData = await pool.query("INSERT INTO geo_data(geoddatajson) VALUES($1) ",[PolygonDescription]);
                 }
                 console.log ("Data Insertion Successful");
-                return "Data Insertion Successful";
+                return ;
                 
             }
             
@@ -51,7 +51,7 @@ const populateTable = async () => {
     }
     else{
         console.log ("Data Already inserted");
-        return "Data Already inserted";
+        return ;
     }
     
 };
