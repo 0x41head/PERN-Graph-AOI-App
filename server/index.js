@@ -6,7 +6,7 @@ const jsonData = require('./JSONData/staticGeoDataTiles.json')
 var dataInserted = false
 
 const connectToDB = async () => {
-    var retry = 10;
+    var retry = 5;
     while(retry){
         try {
             await pool.connect();
