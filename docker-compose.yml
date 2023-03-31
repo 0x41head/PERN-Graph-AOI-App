@@ -31,4 +31,6 @@ services:
       dockerfile: Dockerfile # Dockerfile in client folder
     ports:
       - 3000:3000
+    depends_on:
+      - backend
     restart: always
