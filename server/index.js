@@ -5,11 +5,11 @@ const cors = require("cors");
 const jsonData = require('./JSONData/staticGeoDataTiles.json')
 var dataInsertedBoolean = false
 
-const connectToDB = async () => {
-    var retry = 5;
+const retryFunction = (functionToRetry) =>{
+     var retry = 5;
     while(retry){
         try {
-            await pool.connect();
+            functionToRetry();
             break;
         } catch (err) {
             if (retry>0){
@@ -21,32 +21,31 @@ const connectToDB = async () => {
             }
         }
     }
-  };
+
+}
+
+const connectToDB = async () => {
+    await pool.connect();
+};
 
 const populateTable = async () => {
-    if (!dataInsertedBoolean)
-    {
-        try{
-            const allData = await pool.query("SELECT * FROM geo_data");
-            if(allData.rowCount>0){
-                dataInsertedBoolean = true;
-                console.log ("Data Already inserted");
-                return ;
+    if (!dataInsertedBoolean){
+        const allData = await pool.query("SELECT * FROM geo_data");
+        if(allData.rowCount>0){
+            dataInsertedBoolean = true;
+            console.log ("Data Already inserted");
+            return ;
+        }
+        else{
+            //console.log(jsonData);
+            for (var i=0;i<jsonData.features.length;i++){
+                var PolygonDescription = jsonData.features[i];
+                //console.log(PolygonDescription)
+                const newData = pool.query("INSERT INTO geo_data(geoddatajson) VALUES($1) ",[PolygonDescription]);
             }
-            else{
-                //console.log(jsonData);
-                for (var i=0;i<jsonData.features.length;i++){
-                    var PolygonDescription = jsonData.features[i];
-                    //console.log(PolygonDescription)
-                    const newData = pool.query("INSERT INTO geo_data(geoddatajson) VALUES($1) ",[PolygonDescription]);
-                }
-                console.log ("Data Insertion Successful");
-                return ;
-                
-            }
+            console.log ("Data Insertion Successful");
+            return ;
             
-        }catch(err){
-            console.error(err.message);
         }
     }
     else{
@@ -56,8 +55,8 @@ const populateTable = async () => {
     
 };
 
-connectToDB();
-populateTable();
+retryFunction(connectToDB);
+retryFunction(populateTable);
 
 //MIDDLEWARE
 app.use(cors());
