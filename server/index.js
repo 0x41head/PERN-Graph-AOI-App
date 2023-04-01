@@ -5,8 +5,8 @@ const cors = require("cors");
 const jsonData = require('./JSONData/staticGeoDataTiles.json')
 var dataInsertedBoolean = false
 
-const retryFunction = (functionToRetry) =>{
-     var retry = 5;
+const retryFunction = async (functionToRetry) =>{
+    var retry = 5;
     while(retry){
         try {
             functionToRetry();
