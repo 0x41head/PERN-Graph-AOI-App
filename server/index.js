@@ -5,13 +5,14 @@ const cors = require("cors");
 const jsonData = require('./JSONData/staticGeoDataTiles.json')
 var dataInsertedBoolean = false
 
-const connectToDB = async () => {
+const retryFunction=(functionToRetry)=>{
     var retry = 10;
     while(retry){
         try { 
-            await pool.connect();
+            functionToRetry();
             break;
-        } catch (err) {
+        }
+        catch (err) {
             if (retry>0){
                 retry=retry-1;
                 console.log(retry+ " retries left")
@@ -21,51 +22,43 @@ const connectToDB = async () => {
             }
         }
     }
+
+};
+
+const connectToDB = async () => {
+    await pool.connect();
 };
 
 const populateTable = async () => {
-    var retry = 10;
-    while(retry){
-        try { 
-            if (!dataInsertedBoolean){
-                const allData = await pool.query("SELECT * FROM geo_data");
-                if(allData.rowCount>0){
-                    dataInsertedBoolean = true;
-                    console.log ("Data Already inserted");
-                    return ;
-                }
-                else{
-                    //console.log(jsonData);
-                    for (var i=0;i<jsonData.features.length;i++){
-                        var PolygonDescription = jsonData.features[i];
-                        //console.log(PolygonDescription)
-                        const newData = pool.query("INSERT INTO geo_data(geoddatajson) VALUES($1) ",[PolygonDescription]);
-                    }
-                    console.log ("Data Insertion Successful");
-                    return ;
-                    
-                }
-            }
-            else{
-                console.log ("Data Already inserted");
-                return ;
-            }
+    
+    if (!dataInsertedBoolean){
+        const allData = await pool.query("SELECT * FROM geo_data");
+        if(allData.rowCount>0){
+            dataInsertedBoolean = true;
+            console.log ("Data Already inserted");
+            return ;
         }
-        catch (err) {
-            if (retry>0){
-                retry=retry-1;
-                console.log(retry+ " retries left");
+        else{
+            //console.log(jsonData);
+            for (var i=0;i<jsonData.features.length;i++){
+                var PolygonDescription = jsonData.features[i];
+                //console.log(PolygonDescription)
+                const newData = pool.query("INSERT INTO geo_data(geoddatajson) VALUES($1) ",[PolygonDescription]);
             }
-            else{
-                console.log(err.message);
-            }
+            console.log ("Data Insertion Successful");
+            return ;
+            
         }
+    }
+    else{
+        console.log ("Data Already inserted");
+        return ;
     }
     
 };
 
-connectToDB();
-populateTable();
+retryFunction(connectToDB);
+retryFunction(populateTable);
 
 //MIDDLEWARE
 app.use(cors());
