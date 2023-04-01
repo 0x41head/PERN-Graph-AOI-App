@@ -3,7 +3,7 @@ const app = express();
 const pool = require("./db")
 const cors = require("cors");
 const jsonData = require('./JSONData/staticGeoDataTiles.json')
-var dataInserted = false
+var dataInsertedBoolean = false
 
 const connectToDB = async () => {
     var retry = 5;
@@ -23,13 +23,13 @@ const connectToDB = async () => {
     }
   };
 
-const populateTable =  () => {
-    if (!dataInserted)
+const populateTable = async () => {
+    if (!dataInsertedBoolean)
     {
         try{
-            const allData = pool.query("SELECT * FROM geo_data");
+            const allData = await pool.query("SELECT * FROM geo_data");
             if(allData.rowCount>0){
-                dataInserted = true;
+                dataInsertedBoolean = true;
                 console.log ("Data Already inserted");
                 return ;
             }
