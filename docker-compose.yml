@@ -1,10 +1,10 @@
 version: '3.8'
 services:
-  postgresql_server:
-    image: postgres:12-alpine
+  postgresql_db:
+    image: postgis/postgis:11-3.3-alpine
     environment:
-      POSTGRES_USER: "postgres"
-      POSTGRES_PASSWORD: "postgres" 
+      POSTGRES_USER: "docker"
+      POSTGRES_PASSWORD: "docker" 
       POSTGRES_DB: "aoi_app"
     ports:
       - "5432:5432"
@@ -21,7 +21,7 @@ services:
     ports:
       - 5000:5000
     depends_on:
-      - postgresql_server
+      - postgresql_db
     restart: unless-stopped
 
   frontend:
