@@ -1,7 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react'
 import { FeatureGroup, MapContainer, TileLayer, GeoJSON } from 'react-leaflet'
 import { EditControl } from 'react-leaflet-draw'
-import { intersect } from '@turf/turf'
 
 function BasicMap() {
     const noTilesDisplayedOnMap = {
@@ -18,29 +17,36 @@ function BasicMap() {
     const featureGroupRef = useRef(null);
     
 
-    const updateAOIandIntersectingtiles = (AOIGeoJSONObject) => {
+    const updateAOIandIntersectingtiles = async (AOIGeoJSONObject) => {
       var intersectingTilesFeatureArray = [];
       // if (e.layerType === 'circle') {
       //   console.log("circle center, radius =", e.layer.getLatLng(), e.layer.getRadius())
       // } else {
         // polygon & rectangle
-        console.log('d=',preLoadedStaticTilesJSON);
-        console.log("polygon coordinates =",JSON.parse(JSON.stringify(AOIGeoJSONObject))); // array of LatLng objects
-        for (var i=0; i<preLoadedStaticTilesJSON.features.length;i++){
-          //console.log(d.features[i])
-          var intersection = intersect(preLoadedStaticTilesJSON.features[i], AOIGeoJSONObject);
-          //console.log(intersection)
-          if(intersection!== null) {
-            intersectingTilesFeatureArray.push(preLoadedStaticTilesJSON.features[i]);
-          }
-        }
-        console.log(intersectingTilesFeatureArray);
+      console.log('d=',preLoadedStaticTilesJSON);
+      console.log("polygon coordinates =",JSON.stringify(AOIGeoJSONObject)); // array of LatLng objects
+      var response
+      try{    
+        const AOIgeometry={AOIGeoJSONObject}
+        response = await fetch("http://localhost:5000/intersect",{
+          method:"PUT",
+          headers:{"Content-Type":"application/json"},
+          body: JSON.stringify(AOIgeometry)
+        })
+        const data = await response.json();
+        intersectingTilesFeatureArray.push(data)
+      }
+      catch(e){
+        console.error(e.message)
+      }
+      
+      console.log(intersectingTilesFeatureArray);
         //setIntersectingTilesDisplayedOnMap(intersectingTiles);
       //} // marker or lines, etc.
       setintersectingTilesToBeDisplayedOnMap(intersectingTilesFeatureArray);
     }
 
-    const onAOICreated = (e) => {
+    const onAOICreated = async(e) => {
       //console.log(geodata);
       updateAOIandIntersectingtiles(e.layer.toGeoJSON());
     }

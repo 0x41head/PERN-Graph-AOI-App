@@ -1,3 +1,3 @@
-CREATE TABLE geo_data( 
+CREATE TABLE post_gis_geo_data( 
     id SERIAL PRIMARY KEY, 
-    geodDataJson jsonb);
+    polygon geometry);

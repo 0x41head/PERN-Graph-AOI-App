@@ -32,7 +32,7 @@ const connectToDB = async () => {
 const populateTable = async () => {
     
     if (!dataInsertedBoolean){
-        const allData = await pool.query("SELECT * FROM geo_data");
+        const allData = await pool.query("SELECT * FROM post_gis_geo_data");
         if(allData.rowCount>0){
             dataInsertedBoolean = true;
             console.log ("Data Already inserted");
@@ -42,8 +42,8 @@ const populateTable = async () => {
             //console.log(jsonData);
             for (var i=0;i<jsonData.features.length;i++){
                 var PolygonDescription = jsonData.features[i];
-                //console.log(PolygonDescription)
-                const newData = pool.query("INSERT INTO geo_data(geoddatajson) VALUES($1) ",[PolygonDescription]);
+                console.log(PolygonDescription)
+                const newData = pool.query("INSERT INTO post_gis_geo_data(polygon) VALUES(ST_GeomFromGeoJSON($1)) ",[PolygonDescription.geometry]);
             }
             console.log ("Data Insertion Successful");
             return ;
@@ -67,15 +67,26 @@ app.use(express.json());
 //ROUTES
 
 //READ ALL TABLE ROWS AND FOMRAT AS GEOJSON
-app.get("/read",async(req,res)=>{
+app.post("/read",async(req,res)=>{
     try{
+        const allData = await pool.query("SELECT * FROM post_gis_geo_data;",);
+    }catch(err){
+        console.error(err.message);
+    }
+})
+
+//CHECKS FOR INTERSECTION BETWEEN AOI and Static tiles
+app.put("/intersect",async(req,res)=>{
+    try{
+        const AOIpolygon = req.body.AOIGeoJSONObject.geometry;
+        console.log(AOIpolygon);
         var formattedGeoJSONdata={};
         formattedGeoJSONdata.type="FeatureCollection"
         formattedGeoJSONdata.features=[]
         
-        const allData = await pool.query("SELECT geoddatajson FROM geo_data");
+        const allData = await pool.query("SELECT ST_AsGeoJSON(polygon) FROM post_gis_geo_data WHERE ST_Intersects(polygon,ST_GeomFromGeoJSON($1));",[AOIpolygon]);
         for (var i=0;i<allData.rows.length;i++){
-            formattedGeoJSONdata.features.push(allData.rows[i].geoddatajson);
+            formattedGeoJSONdata.features.push(JSON.parse(allData.rows[i].st_asgeojson));
         }
         res.json(formattedGeoJSONdata)
     }catch(err){
